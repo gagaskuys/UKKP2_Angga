@@ -9,28 +9,30 @@ use Illuminate\Support\Facades\Storage;
 class PengaduanController extends Controller
 {
     // CUSTOMER: buat pengaduan
-    public function create()
-    {
-        return view('customer.pengaduan.create');
+public function create()
+{
+    $kategori = \App\Models\Kategori::all(); // Ambil semua kategori dari database
+    return view('customer.pengaduan.create', compact('kategori'));
+}
+
+public function store(Request $request)
+{
+    $data = $request->validate([
+        'judul'      => 'required|min:5',
+        'kategori_id'=> 'required|exists:kategori,id', // Validasi kategori
+        'keluhan'    => 'required|min:10',
+        'foto_bukti' => 'nullable|image|max:2048',
+    ]);
+
+    $data['user_id'] = auth()->id();
+
+    if ($request->hasFile('foto_bukti')) {
+        $data['foto_bukti'] = $request->file('foto_bukti')->store('pengaduan', 'public');
     }
 
-    public function store(Request $request)
-    {
-        $data = $request->validate([
-            'judul'      => 'required|min:5',
-            'keluhan'    => 'required|min:10',
-            'foto_bukti' => 'nullable|image|max:2048',
-        ]);
-
-        $data['user_id'] = auth()->id();
-
-        if ($request->hasFile('foto_bukti')) {
-            $data['foto_bukti'] = $request->file('foto_bukti')->store('pengaduan', 'public');
-        }
-
-        Pengaduan::create($data);
-        return redirect()->route('customer.pengaduan.index')->with('success', 'Pengaduan berhasil dikirim!');
-    }
+    Pengaduan::create($data);
+    return redirect()->route('customer.pengaduan.index')->with('success', 'Pengaduan berhasil dikirim!');
+}
 
     // CUSTOMER: lihat pengaduan sendiri
     public function customerIndex()

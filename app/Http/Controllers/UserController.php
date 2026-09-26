@@ -36,13 +36,23 @@ class UserController extends Controller
             'email'    => 'required|email|unique:users',
             'password' => 'required|min:6',
             'role'     => 'required|in:admin,petugas,customer',
+            'alamat'   => 'nullable|string',
+            'no_hp'    => 'nullable|string',
+            'foto'     => 'nullable|image|max:2048',
         ]);
+
+        if ($request->hasFile('foto')) {
+            $data['foto'] = $request->file('foto')->store('profil', 'public');
+        }
 
         User::create([
             'name'     => $data['name'],
             'email'    => $data['email'],
             'password' => Hash::make($data['password']),
             'role'     => $data['role'],
+            'alamat'   => $data['alamat'] ?? null,
+            'no_hp'    => $data['no_hp'] ?? null,
+            'foto'     => $data['foto'] ?? null,
         ]);
 
         return redirect()->route('admin.users.index')->with('success', 'User berhasil ditambahkan!');
